@@ -113,12 +113,24 @@ def intent_is_restatement(contract_text: str) -> bool:
     surface_match = re.search(r"(?im)surface request\s*:\s*(.+)$", intent)
     real_match = re.search(r"(?im)real intent\s*:\s*(.+)$", intent)
     if not surface_match or not real_match:
-        return True
+        return False
     surface = surface_match.group(1).strip(" .")
     real = real_match.group(1).strip(" .")
     if not surface or not real or "{{" in surface or "{{" in real:
-        return True
+        return False
     return surface.lower() == real.lower()
+
+
+def intent_fields_present(contract_text: str) -> bool:
+    intent = section_body(contract_text, "Intent")
+    surface_match = re.search(r"(?im)surface request\s*:\s*(.+)$", intent)
+    real_match = re.search(r"(?im)real intent\s*:\s*(.+)$", intent)
+    return bool(
+        surface_match
+        and real_match
+        and surface_match.group(1).strip(" .")
+        and real_match.group(1).strip(" .")
+    )
 
 
 def load_state(path: Path, diagnostics: List[str]) -> Dict[str, Any]:
@@ -326,6 +338,7 @@ def contains_placeholder(text: str) -> bool:
 
 def validate_structure(goal_dir: Path) -> Dict[str, Any]:
     diagnostics: List[str] = []
+    warnings: List[str] = []
     missing = sorted(name for name in REQUIRED_FILES if not (goal_dir / name).is_file())
     extras = unexpected_files(goal_dir) if goal_dir.is_dir() else []
 
@@ -364,8 +377,10 @@ def validate_structure(goal_dir: Path) -> Dict[str, Any]:
         diagnostics.append("missing GOAL_CONTRACT.md section(s)")
     if contract_text and not acceptance_ids(contract_text):
         diagnostics.append("GOAL_CONTRACT.md Acceptance Criteria must include AC ids")
-    if contract_text and intent_is_restatement(contract_text):
-        diagnostics.append("Intent appears to restate the surface request")
+    if contract_text and not intent_fields_present(contract_text):
+        diagnostics.append("GOAL_CONTRACT.md Intent must contain Surface request and Real intent")
+    elif contract_text and intent_is_restatement(contract_text):
+        warnings.append("Intent matches the surface request; confirm that no deeper intent needs recording")
     route = route_from_contract(contract_text)
     if contract_text and not route:
         diagnostics.append("GOAL_CONTRACT.md route is required")
@@ -451,6 +466,7 @@ def validate_structure(goal_dir: Path) -> Dict[str, Any]:
         "unexpected_files": extras,
         "missing_sections": missing_sections,
         "diagnostics": diagnostics,
+        "warnings": warnings,
     }
 
 
@@ -464,6 +480,62 @@ def validate_compile(goal_dir: Path) -> Dict[str, Any]:
 
     result.update({"ok": not diagnostics, "phase": "compile", "diagnostics": diagnostics})
     return result
+
+
+def contract_sha256(goal_dir: Path) -> str:
+    return "sha256:" + hashlib.sha256(
+        read_text(goal_dir / "GOAL_CONTRACT.md").encode("utf-8")
+    ).hexdigest()
+
+
+def native_goal_projection(goal_dir: Path) -> Dict[str, Any]:
+    compile_result = validate_compile(goal_dir)
+    if not compile_result["ok"]:
+        return {
+            **compile_result,
+            "phase": "native-goal",
+            "native_goal": "",
+            "contract_sha256": "",
+            "projection_sha256": "",
+            "runtime_provenance": "external_rollout_check_required",
+        }
+
+    contract_text = read_text(goal_dir / "GOAL_CONTRACT.md")
+    sections = (
+        "Goal",
+        "Constraints",
+        "Non-goals",
+        "Pause Conditions",
+        "Acceptance Criteria",
+    )
+    blocks = "\n\n".join(
+        f"## {section}\n{section_body(contract_text, section).strip()}" for section in sections
+    )
+    goal_path = goal_dir.as_posix()
+    native_goal = "\n\n".join(
+        (
+            f"Execute the confirmed Goal Loop package at `{goal_path}`.",
+            f"Contract SHA-256: `{contract_sha256(goal_dir)}`.",
+            "Read `GOAL_CONTRACT.md` before acting. It is the semantic authority; "
+            "`PLAN.md` is derived strategy and `STATE.json` is runtime state.",
+            blocks,
+            "Do not reinterpret or change contract semantics. If Goal, constraints, "
+            "non-goals, pause conditions, or acceptance criteria must change, Pause.",
+            "Do not mark this native goal complete until target evidence exists, "
+            "STATE.json is Done with empty open_gaps, blockers, next_focus, and "
+            "pause_reasons, CHANGE_BRIEF.md is completed and truthful, and "
+            "`validate_package.py --phase completion` returns ok true.",
+        )
+    )
+    projection_sha256 = "sha256:" + hashlib.sha256(native_goal.encode("utf-8")).hexdigest()
+    return {
+        **compile_result,
+        "phase": "native-goal",
+        "contract_sha256": contract_sha256(goal_dir),
+        "projection_sha256": projection_sha256,
+        "native_goal": native_goal,
+        "runtime_provenance": "external_rollout_check_required",
+    }
 
 
 def generate_review_digest(goal_dir: Path) -> Dict[str, Any]:
@@ -547,29 +619,28 @@ def is_concrete_evidence_line(line: str) -> bool:
     text = line.lower()
     if "change_brief.md" in text or "change brief" in text:
         return False
-    if re.fullmatch(r"[-*\s]*ac-\d+\s*:\s*(done|completed|passed|ok|verified|完成|通过|已验证)\.?", text):
+    generic_results = {
+        "done",
+        "completed",
+        "passed",
+        "ok",
+        "verified",
+        "完成",
+        "通过",
+        "已验证",
+    }
+    if line.lstrip().startswith("|"):
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) < 3 or not re.fullmatch(r"AC-\d+", cells[0], re.IGNORECASE):
+            return False
+        reference, observed = (cell.lower().strip(" .") for cell in cells[1:3])
+        if not reference or not observed or "pending" in reference or "pending" in observed:
+            return False
+        return reference not in generic_results and observed not in generic_results
+    evidence = re.sub(r"^[-*\s]*ac-\d+\s*:\s*", "", text).strip(" .")
+    if not evidence or evidence in generic_results:
         return False
-    concrete_patterns = (
-        r"\bpython3?\b",
-        r"\bpytest\b",
-        r"\bunittest\b",
-        r"\bvalidate_package\b",
-        r"\bquick_validate\b",
-        r"\bpy_compile\b",
-        r"\bdiff\b",
-        r"\bexit code\b",
-        r"\breturned ok true\b",
-        r"\bok:\s*true\b",
-        r"\bran \d+ tests?\b",
-        r"\bcommand output\b",
-        r"\blog\b",
-        r"\bartifact\b",
-        r"https?://",
-        r"[/\\][\w ._/-]+",
-        r"\b[\w.-]+\.(md|json|py|txt|png|jpg|jpeg|log)\b",
-        r"命令|输出|日志|文件|路径|截图|证据",
-    )
-    return any(re.search(pattern, line, re.IGNORECASE) for pattern in concrete_patterns)
+    return len(evidence) >= 12
 
 
 def unsupported_high_risk_claims(brief_text: str) -> List[str]:
@@ -614,6 +685,17 @@ def unsupported_high_risk_claims(brief_text: str) -> List[str]:
     return unsupported
 
 
+def requires_independent_pre_done(state: Dict[str, Any], route: str) -> bool:
+    if route in {"strategic", "repair", "governed"}:
+        return True
+    if is_positive_integer(state.get("no_progress_count")):
+        return True
+    reviews = state.get("verification_delta")
+    return isinstance(reviews, list) and any(
+        valid_review_record(review) and review.get("gate") == "drift" for review in reviews
+    )
+
+
 def validate_completion(goal_dir: Path) -> Dict[str, Any]:
     base = validate_structure(goal_dir)
     diagnostics: List[str] = list(base["diagnostics"])
@@ -622,6 +704,7 @@ def validate_completion(goal_dir: Path) -> Dict[str, Any]:
     contract_text = read_text(goal_dir / "GOAL_CONTRACT.md") if (goal_dir / "GOAL_CONTRACT.md").is_file() else ""
     validation_text = read_text(goal_dir / "VALIDATION.md") if (goal_dir / "VALIDATION.md").is_file() else ""
     state = load_state(goal_dir / "STATE.json", diagnostics) if (goal_dir / "STATE.json").is_file() else {}
+    route = route_from_contract(contract_text)
 
     blockers = state.get("blockers") or []
     open_gaps = state.get("open_gaps") or []
@@ -637,9 +720,11 @@ def validate_completion(goal_dir: Path) -> Dict[str, Any]:
         diagnostics.append("STATE.json Done state must not retain pause_reasons")
     if state.get("current_status") == "Done" and (blockers or any("blocker" in str(gap).lower() for gap in open_gaps)):
         diagnostics.append("STATE.json is Done with unresolved blockers")
-    if not has_passing_review(state, "pre_done", state.get("current_cycle")):
+    if requires_independent_pre_done(state, route) and not has_passing_review(
+        state, "pre_done", state.get("current_cycle")
+    ):
         diagnostics.append("STATE.json verification_delta must record a passing pre_done review record")
-    else:
+    elif has_passing_review(state, "pre_done", state.get("current_cycle")):
         review = effective_review_record(state, "pre_done", state.get("current_cycle"))
         try:
             current_digest = package_review_digest(goal_dir)
@@ -679,7 +764,7 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     parser.add_argument("goal_dir", help="Path to the goal package directory")
     parser.add_argument(
         "--phase",
-        choices=("compile", "review-digest", "completion"),
+        choices=("compile", "review-digest", "completion", "native-goal"),
         default="compile",
         help="Validation phase to run",
     )
@@ -693,6 +778,8 @@ def main(argv: List[str] | None = None) -> int:
         result = validate_completion(goal_dir)
     elif args.phase == "review-digest":
         result = generate_review_digest(goal_dir)
+    elif args.phase == "native-goal":
+        result = native_goal_projection(goal_dir)
     else:
         result = validate_compile(goal_dir)
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))

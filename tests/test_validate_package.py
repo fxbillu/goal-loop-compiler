@@ -148,6 +148,8 @@ class CompactV4ValidatorTests(unittest.TestCase):
         (goal_dir / "GOAL_CONTRACT.md").write_text(
             f"""# Goal Contract: Example
 
+- Package path: `.goal/goals/{goal_dir.name}/`
+
 ## Lifecycle Classification
 
 {route_line}
@@ -895,6 +897,8 @@ requires_human:
             goal_dir = Path(tmp) / "missing-pre-done-review"
             self.write_package(
                 goal_dir,
+                route="strategic",
+                contract_review_passed=True,
                 brief_status="completed",
                 state_status="Done",
                 blockers=[],
@@ -917,6 +921,8 @@ requires_human:
             goal_dir = Path(tmp) / "incomplete-pre-done-review"
             self.write_package(
                 goal_dir,
+                route="strategic",
+                contract_review_passed=True,
                 brief_status="completed",
                 state_status="Done",
                 blockers=[],
@@ -945,6 +951,8 @@ requires_human:
             goal_dir = Path(tmp) / "revised-after-pass"
             self.write_package(
                 goal_dir,
+                route="strategic",
+                contract_review_passed=True,
                 brief_status="completed",
                 state_status="Done",
                 pre_done_review_passed=True,
@@ -1332,6 +1340,155 @@ requires_human:
 
         self.assertEqual(returncode, 0)
         self.assertTrue(result["ok"])
+
+    def test_repeated_intent_is_a_compile_warning(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            goal_dir = Path(tmp) / "repeated-intent"
+            self.write_package(goal_dir, real_intent="Upgrade the package contract.")
+
+            returncode, result = self.run_validator(goal_dir)
+
+        self.assertEqual(returncode, 0)
+        self.assertIn("Intent matches the surface request", result["warnings"][0])
+
+    def test_native_goal_projection_is_deterministic(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            goal_dir = Path(tmp) / "native-goal"
+            self.write_package(goal_dir)
+
+            first_code, first = self.run_validator(goal_dir, phase="native-goal")
+            second_code, second = self.run_validator(goal_dir, phase="native-goal")
+
+        self.assertEqual(first_code, 0)
+        self.assertEqual(second_code, 0)
+        self.assertEqual(first["native_goal"], second["native_goal"])
+        self.assertEqual(first["projection_sha256"], second["projection_sha256"])
+        self.assertIn("## Acceptance Criteria", first["native_goal"])
+        self.assertIn("Contract SHA-256", first["native_goal"])
+        self.assertEqual(first["runtime_provenance"], "external_rollout_check_required")
+
+    def test_native_goal_projection_rejects_invalid_package(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            goal_dir = Path(tmp) / "invalid-native-goal"
+            self.write_package(goal_dir, route="recurring_system")
+
+            returncode, result = self.run_validator(goal_dir, phase="native-goal")
+
+        self.assertEqual(returncode, 1)
+        self.assertEqual(result["native_goal"], "")
+        self.assertIn("recurring_system must not be compiled", result["diagnostics"][0])
+
+    def test_plain_evidence_description_passes_completion(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            goal_dir = Path(tmp) / "plain-evidence"
+            self.write_package(
+                goal_dir,
+                brief_status="completed",
+                state_status="Done",
+                blockers=[],
+                open_gaps=[],
+                change_brief_status="completed",
+                validation_evidence=(
+                    "- AC-01: Review record 2026-07-16 measured all five required artifacts."
+                ),
+                behavior_change="Completed compact package.",
+            )
+
+            returncode, result = self.run_validator(goal_dir, phase="completion")
+
+        self.assertEqual(returncode, 0)
+        self.assertTrue(result["ok"])
+
+    def test_evidence_table_requires_real_reference_and_result(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            goal_dir = Path(tmp) / "evidence-table"
+            self.write_package(
+                goal_dir,
+                brief_status="completed",
+                state_status="Done",
+                blockers=[],
+                open_gaps=[],
+                change_brief_status="completed",
+                validation_evidence=(
+                    "| AC | Evidence reference | Observed result |\n"
+                    "|---|---|---|\n"
+                    "| AC-01 | tests/output-2026-07-16.txt | 62 checks passed |"
+                ),
+                behavior_change="Completed compact package.",
+            )
+
+            returncode, result = self.run_validator(goal_dir, phase="completion")
+
+        self.assertEqual(returncode, 0)
+        self.assertTrue(result["ok"])
+
+    def test_pending_evidence_table_fails_completion(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            goal_dir = Path(tmp) / "pending-evidence-table"
+            self.write_package(
+                goal_dir,
+                brief_status="completed",
+                state_status="Done",
+                blockers=[],
+                open_gaps=[],
+                change_brief_status="completed",
+                validation_evidence=(
+                    "| AC | Evidence reference | Observed result |\n"
+                    "|---|---|---|\n"
+                    "| AC-01 | Pending final validation. | Pending final validation. |"
+                ),
+                behavior_change="Completed compact package.",
+            )
+
+            returncode, result = self.run_validator(goal_dir, phase="completion")
+
+        self.assertEqual(returncode, 1)
+        self.assertIn(
+            "CHANGE_BRIEF.md Validation Evidence must map evidence to every acceptance criterion",
+            result["diagnostics"],
+        )
+
+    def test_native_goal_projection_changes_with_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            goal_dir = Path(tmp) / "changed-native-goal"
+            self.write_package(goal_dir)
+            _, before = self.run_validator(goal_dir, phase="native-goal")
+            contract_path = goal_dir / "GOAL_CONTRACT.md"
+            contract_path.write_text(
+                contract_path.read_text(encoding="utf-8").replace(
+                    "Upgrade the package contract.", "Upgrade the runtime contract."
+                ),
+                encoding="utf-8",
+            )
+            _, after = self.run_validator(goal_dir, phase="native-goal")
+
+        self.assertNotEqual(before["contract_sha256"], after["contract_sha256"])
+        self.assertNotEqual(before["projection_sha256"], after["projection_sha256"])
+
+    def test_drift_requires_pre_done_review_for_finite_goal(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            goal_dir = Path(tmp) / "drift-pre-done"
+            self.write_package(
+                goal_dir,
+                brief_status="completed",
+                state_status="Done",
+                current_cycle=1,
+                no_progress_count=1,
+                drift_review_passed=True,
+                blockers=[],
+                open_gaps=[],
+                change_brief_status="completed",
+                validation_evidence="- AC-01: review record 2026-07-16 measured the final package.",
+                behavior_change="Completed compact package.",
+            )
+
+            returncode, result = self.run_validator(goal_dir, phase="completion")
+
+        self.assertEqual(returncode, 1)
+        self.assertIn(
+            "STATE.json verification_delta must record a passing pre_done review record",
+            result["diagnostics"],
+        )
 
 
 if __name__ == "__main__":

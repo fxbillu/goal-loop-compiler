@@ -22,8 +22,11 @@ Capture:
 - biggest wrong-turn risk;
 - acceptance evidence.
 
-`Intent` must not merely restate the user request. `Strategic Outcome` must
-describe what becomes better, not only which file or prompt is produced.
+`Intent` should explain the underlying result, dissatisfaction, or wrong-turn
+risk when that adds decision value. If the surface request is already the most
+accurate intent, keep it and let the validator emit a review warning rather than
+inventing a paraphrase. `Strategic Outcome` must describe what becomes better,
+not only which file or prompt is produced.
 
 ## Decision Standard
 

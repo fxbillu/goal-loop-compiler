@@ -23,7 +23,7 @@ This file is the evidence gate and final audit rule source.
   `next_focus`, and `pause_reasons` are empty.
 - `STATE.json.current_status` is not `Continue` after `max_cycles` or `no_progress_threshold` is reached.
 - Required contract/drift gates have auditable `goal_loop_evaluator` records for the applicable cycle.
-- `STATE.json.verification_delta` records an independent `pre_done` review by `goal_loop_evaluator` with verdict `pass`, the exact runtime-returned reviewer reference, matching canonical five-file artifact digest, current cycle, and all five reviewed artifacts before completion validation.
+- `strategic`, `repair`, `governed`, or drifted packages record an independent `pre_done` review by `goal_loop_evaluator` with verdict `pass`, the exact runtime-returned reviewer reference, matching canonical five-file artifact digest, current cycle, and all five reviewed artifacts before completion validation.
 - `CHANGE_BRIEF.md` contains no unsupported behavior changes, result claims, or validation claims.
 - A completed Change Brief has no stale `awaiting`, `pending`, or `remaining validation` language in Outcome or Unresolved Gaps.
 - Non-goals and constraints were not violated.
@@ -32,6 +32,12 @@ This file is the evidence gate and final audit rule source.
 ## Required Evidence
 
 - {{REQUIRED_EVIDENCE_ITEM}}
+
+## Native Goal Projection
+
+- Generate Native Goal only with `validate_package.py --phase native-goal` after compile validation passes.
+- The Executor passes the returned text unchanged to `create_goal`.
+- Native Goal is external runtime provenance; package files do not prove that the exact text was submitted.
 
 ## Forbidden Completion Claims
 

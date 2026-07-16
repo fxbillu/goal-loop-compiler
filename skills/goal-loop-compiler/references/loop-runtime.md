@@ -50,7 +50,10 @@ acceptance criteria.
 - `Pause`: evidence is missing, route is wrong, scope must change, risk needs user judgment, or no-progress threshold is reached.
 
 Use a fresh, read-only `goal_loop_evaluator` at the review gates defined in
-`SKILL.md`. Pass raw artifacts and the review question, not a builder summary.
+`SKILL.md`. `strategic`, `repair`, and `governed` packages require contract and
+pre-Done review. Ordinary `finite_goal` packages require pre-Done review only
+after drift or no progress. Pass raw artifacts and the review question, not a
+builder summary.
 Record each result in `verification_delta` using:
 
 ```json
@@ -63,10 +66,11 @@ one is exposed, otherwise use the returned task path such as
 `/root/pre_done_evaluator`. Never invent or replace `review_ref`. The validator
 checks record shape and state consistency; an external audit must compare the
 reference and verdict with the runtime rollout because package files cannot
-prove reviewer provenance. Only an independent `pre_done` `pass` permits
-`Done`. Records are chronological; the latest verdict for a gate and cycle
-governs, and malformed records invalidate the package. `revise` or `blocked`
-keeps the package at `Continue` or `Pause`.
+prove reviewer provenance. Only packages whose route or drift policy requires
+independent review need a `pre_done` `pass` for `Done`. Records are
+chronological; the latest verdict for a gate and cycle governs, and malformed
+records invalidate the package. `revise` or `blocked` keeps the package at
+`Continue` or `Pause`.
 
 Compute `artifact_digest` with the installed validator's canonical digest
 function. It hashes all five package files in filename order and canonicalizes
@@ -80,6 +84,22 @@ python3 scripts/validate_package.py --phase review-digest <goal-dir>
 
 `CONTINUATION_SUMMARY.md` is optional. Export it outside the goal directory
 only after Continue or Pause, and state that it is derived from `STATE.json`.
+
+## Native Goal Projection
+
+After compile validation, render the native runtime goal with:
+
+```bash
+python3 scripts/validate_package.py --phase native-goal <goal-dir>
+```
+
+The returned `native_goal` text is a deterministic projection of
+`GOAL_CONTRACT.md`; it includes the contract digest and exact Goal,
+Constraints, Non-goals, Pause Conditions, and Acceptance Criteria. The Executor
+passes that text unchanged to `create_goal`. Record or audit the returned
+projection digest from the Codex rollout, because files alone cannot prove the
+runtime objective. Once Native Goal starts, semantic contract changes require
+Pause, recompile, re-projection, and a new Goal.
 
 ## Final Evaluation
 

@@ -24,7 +24,7 @@ Use before delivering a compiled package or skill update.
 
 ## Contract Quality
 
-- Intent is not a restatement.
+- Intent contains both Surface request and Real intent; an exact match is a warning to review, not an automatic failure.
 - Strategic Outcome is not just an artifact.
 - Decision Standard can decide tradeoffs.
 - Evidence Standard appears in `VALIDATION.md`.
@@ -38,10 +38,12 @@ Use before delivering a compiled package or skill update.
 - `STATE.json` has schema `compact-v4`, loop budget, open gaps, completion candidates, blockers, and source-of-truth map.
 - `VALIDATION.md` contains compile checks, completion checks, source-of-truth checks, and final evaluator verdict format.
 - `CHANGE_BRIEF.md` starts as `pending` and does not claim unproven results.
+- Native Goal is rendered deterministically from the compiled contract; it is not a second authored goal.
 
 ## Delivery
 
 - Run `scripts/validate_package.py --phase compile <goal-dir>` on an example package.
+- Run `scripts/validate_package.py --phase native-goal <goal-dir>` before Executor handoff.
 - Run relevant unit tests for validator changes.
 - Run skill quick validation.
 - Update project dev log after substantive changes.

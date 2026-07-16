@@ -1,6 +1,6 @@
 interface:
   display_name: "Goal Loop Compiler"
   short_description: "编译精简、可验证、可暂停的 finite Goal Loop 包"
-  default_prompt: "Use $goal-loop-compiler compact-v4. First produce a Goal Alignment Card and wait for confirmation before creating the five-file package or executing."
+  default_prompt: "Use $goal-loop-compiler compact-v4. First produce a Goal Alignment Card; wait for literal confirmation only when the contract is materially inferred, high-risk, or explicitly confirmation-gated."
 policy:
   allow_implicit_invocation: false

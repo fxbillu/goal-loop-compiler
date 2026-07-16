@@ -1,113 +1,61 @@
 ---
 name: goal-loop-compiler
-description: Use when a non-trivial finite task should become a file-shaped, verifiable, stoppable Goal Loop execution package. Compile GoalPro-style intent, decision, evidence, scope, state, validation, and Change Brief structure into a compact V4 package after a Goal Alignment Card is confirmed. Do not use for recurring automation, monitoring, daily/weekly routines, or prompt-only GoalPro output.
+description: Use when a non-trivial finite task needs a file-shaped, verifiable, stoppable Goal Loop package. Compile GoalPro-style intent, evidence, scope, state, validation, and human handoff into compact V4 artifacts. Do not use for recurring automation, monitoring, daily/weekly routines, or prompt-only GoalPro output.
 ---
 
 # Goal Loop Compiler compact-v4
 
-Compile a user's intention into a small finite execution package that another
-agent can execute, verify, pause, and explain back to a human.
+Compile a finite intention into a compact execution package that an agent can
+execute, verify, pause, and explain to a human.
 
-GoalPro is the semantic blueprint. V4 is the file-shaped runtime authority.
-Do not output `Goal Prompt`, `Loop Prompt`, or `Launch Prompt` as package
-artifacts. A launch prompt is chat text only, never source of truth.
+GoalPro is the semantic blueprint. V4 is the durable package authority. Native
+Goal is the package's deterministic runtime projection, not a second authored
+goal. Do not create `Goal Prompt`, `Loop Prompt`, or `Launch Prompt` artifacts.
 
-## First Response
-
-When invoked, do not create files or execute work immediately. First output:
-
-```md
-# Goal Alignment Card
-
-## My Understanding
-<one-sentence interpretation>
-
-## Proposed Route
-one_shot | finite_goal | strategic | repair | governed | recurring_system
-
-Reason:
-<short reason>
-
-## Proposed Package Mode
-Delivery / Experiment / Not a finite package
-
-## Please Confirm
-
-### Goal
-Suggested default:
-<finite result to achieve or discover>
-
-### Success Evidence
-Suggested default:
-<tests, diff, screenshot, data result, audit verdict, or manual evidence>
-
-### Boundaries
-Suggested default:
-<allowed paths/actions and forbidden changes>
-
-### Stop / Pause Rules
-Suggested default:
-<max cycles, no-progress rule, missing evidence rule, human review trigger>
-
-Reply `confirm` to use the defaults, or edit any field.
-```
-
-Wait for explicit confirmation before creating files, compiling a package, or
-executing work. There is no best-judgment bypass for this skill.
-
-## Router
+## Alignment
 
 Classify before package creation:
 
-- `one_shot`: simple, low-risk, better handled directly. Do not create a full package.
+- `one_shot`: simple and low risk; handle directly without a package.
 - `finite_goal`: clear terminal result with verifiable evidence.
-- `strategic`: route/architecture/long-term decision; require evidence gate before package completion.
-- `repair`: previous output ran off course; diagnose failure before compiling the fix package.
-- `governed`: high-risk, multi-file, production-adjacent, permissions, data, or release work; require inventory and pause gates.
-- `recurring_system`: daily, weekly, automatic, monitoring, operations, release queue, long-running review, or background loop. Do not compile as a finite package; return a handoff or system-loop proposal.
+- `strategic`: route, architecture, or long-term decision; require evidence.
+- `repair`: prior output ran off course; diagnose before compiling a fix.
+- `governed`: high-risk, release, permission, data, or production-adjacent work.
+- `recurring_system`: ongoing automation, monitoring, operations, or routine; do not compile a finite package.
 
-Use lifecycle first. Keywords are weak signals. If a request mixes setup and
-ongoing operation, compile only the finite setup milestone or route to
-`recurring_system`.
+Output a Goal Alignment Card before compiling. Include the route, package mode,
+Goal, Success Evidence, Boundaries, and Stop / Pause Rules.
+
+Use `confirmed_by_request` only when all four fields are explicit, the user
+explicitly invokes this skill to compile, the work is safe and local, and no
+material field was inferred. Label that status in the card and continue.
+
+Use `literal_confirm_required` and wait for `confirm` when a material goal,
+evidence, boundary, or stop rule was inferred; when the action is external,
+destructive, costly, permission-changing, or materially expands scope; or when
+the user explicitly requests a confirmation gate. A user-requested literal gate
+always wins.
 
 ## Compiler Pipeline
 
-After confirmation, run these stages:
+After confirmation or `confirmed_by_request`:
 
-1. `CLASSIFY`: choose the lifecycle route above.
-2. `INTENT_INTAKE`: derive surface request, real intent, dissatisfaction, strategic outcome, wrong-turn risk, and acceptance evidence.
-3. `EVIDENCE_GATE`: for strategic, governed, external-fact, platform-version, legal, pricing, standards, or user-requested research work, collect evidence before finalizing the contract. Evidence must change at least one contract field.
-4. `WORKFLOW_LENS`: detect repeating work only to route or annotate. Never create automation here.
-5. `INVENTORY`: list affected skill instructions, templates, references, scripts, tests, and source-of-truth files before mutation.
-6. `CONTRACT_COMPILE`: create exactly the default package files.
-7. `CONTRACT_REVIEW`: check source-of-truth consistency, remove duplicate authority, and run any applicable adversarial gate below.
-8. `LOOP_INITIALIZATION`: initialize state, open gaps, loop budget, and next focus.
-9. `EXPRESSION_ECONOMY`: remove repetition, not judgment, boundaries, or evidence.
+1. `CLASSIFY`: choose the lifecycle route.
+2. `INTENT_INTAKE`: derive surface request, real intent, dissatisfaction,
+   strategic outcome, wrong-turn risk, and acceptance evidence.
+3. `EVIDENCE_GATE`: for strategic, governed, external-fact, platform-version,
+   legal, pricing, standards, or research work, collect evidence that changes at
+   least one contract field.
+4. `INVENTORY`: list affected instructions, templates, references, scripts,
+   tests, and source-of-truth files before mutation.
+5. `CONTRACT_COMPILE`: create exactly the five default package files.
+6. `CONTRACT_REVIEW`: remove duplicate authority and run required review gates.
+7. `LOOP_INITIALIZATION`: initialize state, gaps, budget, and next focus.
+8. `EXPRESSION_ECONOMY`: remove repetition, never boundaries or evidence.
 
-## Compiler Completion
+## Package And Authority
 
-The compiler is complete only when it has created exactly the five default
-package files, run compile validation, and reported the package path and
-result. Then stop. Product execution, product files, and `create_goal` belong
-to a separate explicit Executor request.
-
-## Adversarial Review Gates
-
-Use a fresh, read-only `goal_loop_evaluator` subagent. Give it the raw package
-artifacts, evidence, and a narrow review question, never the builder's
-conclusion. Run it:
-
-- after contract compile for `strategic`, `governed`, or `repair`, or when intent, scope, evidence, or authority remains ambiguous;
-- when `no_progress_count` increases, strategy changes, or drift is suspected;
-- before `Done` for every finite package.
-
-A `revise` or `blocked` verdict prevents progression. Record the auditable
-result defined in `references/loop-runtime.md` in `STATE.json.verification_delta`.
-If independent pre-Done review is unavailable, `Pause`; do not self-approve.
-
-## Default Package
-
-Create files under:
+Create only:
 
 ```text
 .goal/goals/<YYYY-MM-DD-task-slug>/
@@ -118,74 +66,86 @@ Create files under:
   CHANGE_BRIEF.md
 ```
 
-Create no other runtime package artifacts. The validator enforces legacy and
-prompt-only artifact exclusions.
+- `GOAL_CONTRACT.md`: durable semantic source: goal, intent, scope, non-goals,
+  constraints, pause conditions, acceptance criteria, and evidence standard.
+- `PLAN.md`: derived execution strategy only; it never redefines semantics.
+- `STATE.json`: runtime status, evidence, gaps, controls, and review records.
+- `VALIDATION.md`: compile/completion gates and evaluator rubric.
+- `CHANGE_BRIEF.md`: human summary, never self-evidence; starts `pending`.
 
-After Continue or Pause, a `CONTINUATION_SUMMARY.md` may be exported outside
-the goal directory; it must state that `STATE.json` remains authoritative.
+`CONTINUATION_SUMMARY.md` is optional, outside the package, and only after
+Continue or Pause. It must say that `STATE.json` remains authoritative.
 
-## Source-of-truth Map
+## Native Goal Handoff
 
-- `GOAL_CONTRACT.md`: only semantic source. Holds goal, intent, strategic outcome, decision standard, evidence standard, scope, non-goals, constraints, pause conditions, human completion standard, and acceptance criteria.
-- `PLAN.md`: derived execution strategy. It may list context, inventory, policy, checkpoints, slices, and per-slice verification. It must not redefine intent or scope.
-- `STATE.json`: only runtime state. Holds status, cycle, open gaps, closed evidence, completion candidates, verification delta, change brief status, next focus, pause reasons, blockers, and loop budget.
-- `VALIDATION.md`: only evidence gate. Holds compile checks, completion checks, source-of-truth checks, and the embedded final evaluator rubric.
-- `CHANGE_BRIEF.md`: only human delivery summary. It is not evidence for itself and starts as `pending`.
+The Compiler completes after it creates the package, runs compile validation,
+renders the Native Goal projection, reports its path and digests, and stops at
+the Executor checkpoint. This is a phase boundary, not a required new chat.
 
-Use the templates in `assets/`:
+Run:
 
-- `GOAL_CONTRACT.template.md`
-- `PLAN.template.md`
-- `STATE.template.json`
-- `VALIDATION.template.md`
-- `CHANGE_BRIEF.template.md`
+```bash
+python3 scripts/validate_package.py --phase compile <goal-dir>
+python3 scripts/validate_package.py --phase native-goal <goal-dir>
+```
+
+The Executor normally continues in the same Codex task after the user sends
+`execute`. It must pass the returned `native_goal` text unchanged to
+`create_goal`, then read the full contract before acting. Native Goal freezes
+contract semantics. If semantics need to change, Pause, recompile, re-render,
+and start a new Native Goal.
+
+Use a separate Executor task only for blind review, permission or workspace
+isolation, or explicit user direction.
+
+## Review Gates
+
+Use a fresh, read-only `goal_loop_evaluator`. Give raw artifacts, evidence, and
+a narrow question, never the builder's conclusion.
+
+Independent contract and pre-Done review are required for `strategic`, `repair`,
+and `governed` packages. A drift review is required after no progress or a
+strategy change. Any drift record requires an independent pre-Done review.
+
+For a stable ordinary `finite_goal`, use executor self-check, target evidence,
+and static completion validation; do not add a reviewer merely by default.
+
+A `revise` or `blocked` verdict prevents progression. If a required independent
+review is unavailable, Pause. Record review provenance in
+`STATE.json.verification_delta` as described in `references/loop-runtime.md`.
 
 ## Validation
 
-For deterministic package checks, use:
-
 ```bash
-cd <goal-loop-compiler skill directory>
 python3 scripts/validate_package.py --phase compile <goal-dir>
 python3 scripts/validate_package.py --phase review-digest <goal-dir>
+python3 scripts/validate_package.py --phase native-goal <goal-dir>
 python3 scripts/validate_package.py --phase completion <goal-dir>
 ```
 
-Compile validation must fail on missing default files, old default files,
-restated Intent, missing Evidence Standard in validation, `PLAN.md` intent
-conflict, `CHANGE_BRIEF.md` not pending, or `recurring_system` as a finite
-package. It must also reject invalid loop counters, budgets, or `Continue` at
-a configured stop limit, plus missing required contract or drift reviews.
+Compile validation rejects missing or extra package files, prompt-only
+artifacts, semantic conflicts, missing evidence rules, invalid state controls,
+and recurring routes. An Intent that matches the surface request is a warning,
+not a failure.
 
-Completion validation must fail on unsupported completion claims, `Done` with
-nonempty open gaps, blockers, `next_focus`, or `pause_reasons`, non-goal
-violations, missing target evidence, missing independent `pre_done` pass, or a
-final evaluator rubric that does not check Change Brief truthfulness. Follow the finalization order in
-`references/loop-runtime.md`; after completion validation passes, do not mutate
-the package again.
+Completion validation rejects unsupported claims, incomplete acceptance evidence,
+Done with active gaps or blockers, non-goal violations, malformed review
+records, and a final evaluator that does not check Change Brief truthfulness.
+It requires pre-Done review only when the route or drift policy requires it.
 
 ## References
 
-Read references only when needed:
+Read only when needed:
 
-- `references/goal-quality.md`: GoalPro-derived contract quality and evidence gate rules.
-- `references/loop-runtime.md`: state, continuation, final evaluation, and Change Brief rules.
-- `references/quality-checklist.md`: pre-delivery checks for compact-v4 packages.
+- `references/goal-quality.md`: contract quality and evidence gates.
+- `references/loop-runtime.md`: state, native handoff, reviews, and finalization.
+- `references/quality-checklist.md`: compact-v4 delivery checks.
 
 ## Stop Conditions
 
-Pause and report instead of compiling or continuing when:
+Pause or hand off when the route is `recurring_system`, the request is
+`one_shot`, required evidence is unavailable, completion requires a semantic
+contract change, validation cannot establish confidence, or the next decision
+needs human business judgment or high-risk permission.
 
-- the route is `recurring_system`;
-- the route is `one_shot`; handle it directly or return a short handoff instead of compiling a package;
-- the user has not confirmed the alignment card;
-- evidence is required but unavailable;
-- completing the task requires changing goal, success evidence, boundaries, or stop rules;
-- package files would create duplicate source of truth;
-- validation cannot be run for a reason that affects completion confidence;
-- the next decision requires human business judgment or high-risk permission.
-
-## Reply Style
-
-Be concise. Ask only for fields that change the route, success evidence,
-boundaries, or stop rules. Provide defaults so the user can reply `confirm`.
+Ask only for fields that change route, evidence, boundaries, or stop rules.

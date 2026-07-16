@@ -6,9 +6,12 @@
 
 ## Authority
 
-This file is the only semantic source of truth for this finite goal package.
-If chat history, old plans, `PLAN.md`, `STATE.json`, `VALIDATION.md`, or
-`CHANGE_BRIEF.md` conflict with this contract, pause and resolve the conflict.
+This file is the durable semantic source of truth for this finite goal package.
+Native Goal is a deterministic runtime projection of this contract. If chat
+history, an active Native Goal, old plans, `PLAN.md`, `STATE.json`,
+`VALIDATION.md`, or `CHANGE_BRIEF.md` conflict with this contract, pause and
+resolve the conflict. After Native Goal starts, semantic edits require Pause,
+recompile, re-projection, and a new Native Goal.
 
 ## Lifecycle Classification
 

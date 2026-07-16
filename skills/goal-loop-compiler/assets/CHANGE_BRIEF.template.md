@@ -27,7 +27,9 @@ Pending final validation.
 
 ## Validation Evidence
 
-Pending final validation.
+| AC | Evidence reference | Observed result |
+|---|---|---|
+| AC-01 | Pending final validation. | Pending final validation. |
 
 ## Risks and Limitations
 
