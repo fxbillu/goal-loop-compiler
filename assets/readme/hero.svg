@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" role="img" aria-labelledby="title desc">
+  <title id="title">Goal Loop Compiler</title>
+  <desc id="desc">A compact Codex skill that compiles intent into five auditable execution-package files.</desc>
+  <rect width="1200" height="400" fill="#0b1020"/>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+    <text x="64" y="62" fill="#6ed39d" font-size="15" font-weight="700">CODEX SKILL  /  COMPACT-V4  /  PUBLIC BETA</text>
+    <text x="64" y="130" fill="#f7f9fc" font-size="48" font-weight="760">Goal Loop Compiler</text>
+    <text x="64" y="174" fill="#aeb8cc" font-size="21">Turn intent into a finite, auditable execution package.</text>
+
+    <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14">
+      <rect x="64" y="222" width="184" height="44" rx="6" fill="#151d33" stroke="#69a7ff"/>
+      <text x="82" y="249" fill="#f7f9fc">USER INTENT</text>
+      <path d="M248 244 H310" stroke="#69a7ff" stroke-width="2"/>
+      <path d="M302 237 L311 244 L302 251" fill="none" stroke="#69a7ff" stroke-width="2"/>
+      <rect x="312" y="222" width="184" height="44" rx="6" fill="#151d33" stroke="#f6c85f"/>
+      <text x="330" y="249" fill="#f7f9fc">ALIGN + COMPILE</text>
+    </g>
+
+    <text x="64" y="322" fill="#8793aa" font-size="14" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">CONFIRM  →  CONTRACT  →  REVIEW  →  EXECUTE  →  VERIFY</text>
+    <text x="64" y="354" fill="#59657b" font-size="13">Five files. One semantic authority. Evidence before Done.</text>
+
+    <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">
+      <path d="M526 244 H570 V86 H608" fill="none" stroke="#3b465f" stroke-width="2"/>
+      <path d="M570 244 V148 H608" fill="none" stroke="#3b465f" stroke-width="2"/>
+      <path d="M570 244 H608" fill="none" stroke="#3b465f" stroke-width="2"/>
+      <path d="M570 244 V296 H608" fill="none" stroke="#3b465f" stroke-width="2"/>
+      <path d="M570 244 V358 H608" fill="none" stroke="#3b465f" stroke-width="2"/>
+
+      <rect x="608" y="60" width="520" height="52" rx="6" fill="#121a2d" stroke="#69a7ff"/>
+      <text x="630" y="91" fill="#f7f9fc">GOAL_CONTRACT.md</text>
+      <text x="824" y="91" fill="#8793aa">semantic authority</text>
+
+      <rect x="608" y="122" width="520" height="52" rx="6" fill="#121a2d" stroke="#36cfc9"/>
+      <text x="630" y="153" fill="#f7f9fc">PLAN.md</text>
+      <text x="824" y="153" fill="#8793aa">derived execution strategy</text>
+
+      <rect x="608" y="184" width="520" height="52" rx="6" fill="#121a2d" stroke="#f6c85f"/>
+      <text x="630" y="215" fill="#f7f9fc">STATE.json</text>
+      <text x="824" y="215" fill="#8793aa">runtime truth</text>
+
+      <rect x="608" y="246" width="520" height="52" rx="6" fill="#121a2d" stroke="#ff6b6b"/>
+      <text x="630" y="277" fill="#f7f9fc">VALIDATION.md</text>
+      <text x="824" y="277" fill="#8793aa">evidence gates + evaluator</text>
+
+      <rect x="608" y="308" width="520" height="52" rx="6" fill="#121a2d" stroke="#6ed39d"/>
+      <text x="630" y="339" fill="#f7f9fc">CHANGE_BRIEF.md</text>
+      <text x="824" y="339" fill="#8793aa">truthful human handoff</text>
+    </g>
+  </g>
+</svg>

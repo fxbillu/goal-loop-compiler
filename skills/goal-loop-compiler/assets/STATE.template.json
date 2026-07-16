@@ -1,0 +1,28 @@
+{
+  "schema_version": "compact-v4",
+  "lifecycle_route": "{{finite_goal|strategic|repair|governed}}",
+  "current_status": "Continue",
+  "current_cycle": 0,
+  "open_gaps": [
+    "{{INITIAL_GAP}}"
+  ],
+  "closed_evidence": [],
+  "completion_candidates": [],
+  "verification_delta": [],
+  "change_brief_status": "pending",
+  "next_focus": "{{NEXT_BEST_ACTION}}",
+  "pause_reasons": [],
+  "blockers": [],
+  "no_progress_count": 0,
+  "loop_budget": {
+    "max_cycles": 3,
+    "no_progress_threshold": 2
+  },
+  "source_of_truth": {
+    "semantic_contract": "GOAL_CONTRACT.md",
+    "execution_plan": "PLAN.md",
+    "runtime_state": "STATE.json",
+    "validation_gate": "VALIDATION.md",
+    "human_delivery": "CHANGE_BRIEF.md"
+  }
+}
